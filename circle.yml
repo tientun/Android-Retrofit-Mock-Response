@@ -1,0 +1,7 @@
+machine:
+  environment:
+    JAVA_OPTS: "-Xms512m -Xmx768m"
+  timezone: Asia/Saigon
+test:
+  override:
+    - scripts/check.sh

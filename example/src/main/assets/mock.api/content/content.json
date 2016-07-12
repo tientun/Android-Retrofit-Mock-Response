@@ -1,0 +1,14 @@
+{
+  "status": "success",
+  "data": {
+    "content": [
+      {
+        "item": "Item 1"
+      },
+      {
+        "item": "Item 2"
+      }
+    ]
+  },
+  "message": null
+}
