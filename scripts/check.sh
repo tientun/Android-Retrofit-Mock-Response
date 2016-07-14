@@ -27,11 +27,11 @@ echo "********************"
 LINT_RESULT_DIR="$CIRCLE_ARTIFACTS/lint"
 
 mkdir "$LINT_RESULT_DIR"
-cp -v "app/build/reports/checkstyle/checkstyle.xml" "$LINT_RESULT_DIR/"
-cp -v "app/build/reports/findbugs/findbugs.xml" "$LINT_RESULT_DIR/"
-cp -v "app/build/reports/pmd/pmd.xml" "$LINT_RESULT_DIR/"
-cp -v "app/build/reports/pmd/cpd.xml" "$LINT_RESULT_DIR/"
-cp -v "app/build/outputs/lint-results-debug.xml" "$LINT_RESULT_DIR/"
+cp -v "retrofitmockresponse/build/reports/checkstyle/checkstyle.xml" "$LINT_RESULT_DIR/"
+cp -v "retrofitmockresponse/build/reports/findbugs/findbugs.xml" "$LINT_RESULT_DIR/"
+cp -v "retrofitmockresponse/build/reports/pmd/pmd.xml" "$LINT_RESULT_DIR/"
+cp -v "retrofitmockresponse/build/reports/pmd/cpd.xml" "$LINT_RESULT_DIR/"
+cp -v "retrofitmockresponse/build/outputs/lint-results-debug.xml" "$LINT_RESULT_DIR/"
 
 if [ -z "${CI_PULL_REQUEST}" ]; then
     # when not pull request
@@ -43,14 +43,14 @@ fi
 echo "********************"
 echo "* checkstyle       *"
 echo "********************"
-cat app/build/reports/checkstyle/checkstyle.xml \
+cat retrofitmockresponse/build/reports/checkstyle/checkstyle.xml \
     | checkstyle_filter-git diff origin/master \
     | saddler report --require saddler/reporter/github --reporter $REPORTER
 
 echo "********************"
 echo "* findbugs         *"
 echo "********************"
-cat app/build/reports/findbugs/findbugs.xml \
+cat retrofitmockresponse/build/reports/findbugs/findbugs.xml \
     | findbugs_translate_checkstyle_format translate \
     | checkstyle_filter-git diff origin/master \
     | saddler report --require saddler/reporter/github --reporter $REPORTER
@@ -58,7 +58,7 @@ cat app/build/reports/findbugs/findbugs.xml \
 echo "********************"
 echo "* PMD              *"
 echo "********************"
-cat app/build/reports/pmd/pmd.xml \
+cat retrofitmockresponse/build/reports/pmd/pmd.xml \
     | pmd_translate_checkstyle_format translate \
     | checkstyle_filter-git diff origin/master \
     | saddler report --require saddler/reporter/github --reporter $REPORTER
@@ -66,7 +66,7 @@ cat app/build/reports/pmd/pmd.xml \
 echo "********************"
 echo "* PMD-CPD          *"
 echo "********************"
-cat app/build/reports/pmd/cpd.xml \
+cat retrofitmockresponse/build/reports/pmd/cpd.xml \
     | pmd_translate_checkstyle_format translate --cpd-translate \
     | checkstyle_filter-git diff origin/master \
     | saddler report --require saddler/reporter/github --reporter $REPORTER
@@ -74,7 +74,7 @@ cat app/build/reports/pmd/cpd.xml \
 echo "********************"
 echo "* android lint     *"
 echo "********************"
-cat app/build/outputs/lint-results-debug.xml \
+cat retrofitmockresponse/build/outputs/lint-results-debug.xml \
     | android_lint_translate_checkstyle_format translate \
     | checkstyle_filter-git diff origin/master \
     | saddler report --require saddler/reporter/github --reporter $REPORTER
