@@ -20,18 +20,22 @@ import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okio.Buffer;
 
 /**
  *
@@ -48,7 +52,32 @@ public class FakeInterceptor implements Interceptor {
     }
 
     /**
+     * Returns true if the body in question probably contains human readable text. Uses a small sample
+     * of code points to detect unicode control characters commonly used in binary file signatures.
+     */
+    static boolean isPlaintext(Buffer buffer) {
+        try {
+            Buffer prefix = new Buffer();
+            long byteCount = buffer.size() < 64 ? buffer.size() : 64;
+            buffer.copyTo(prefix, 0, byteCount);
+            for (int i = 0; i < 16; i++) {
+                if (prefix.exhausted()) {
+                    break;
+                }
+                int codePoint = prefix.readUtf8CodePoint();
+                if (Character.isISOControl(codePoint) && !Character.isWhitespace(codePoint)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (EOFException e) {
+            return false; // Truncated UTF-8 sequence.
+        }
+    }
+
+    /**
      * Set content type for header
+     *
      * @param contentType Content type
      * @return FakeInterceptor
      */
@@ -61,7 +90,7 @@ public class FakeInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         List<String> listSuggestionFileName = new ArrayList<>();
         String method = chain.request().method().toLowerCase();
-
+        new AssetsFileScanner(mContext);
         Response response = null;
         // Get Request URI.
         final URI uri = chain.request().url().uri();
@@ -147,4 +176,22 @@ public class FakeInterceptor implements Interceptor {
         }
         return uri.getHost() + path + fileName;
     }
+
+    private void getPostQuerries(Chain chain) throws IOException {
+        Charset UTF8 = Charset.forName("UTF-8");
+        RequestBody requestBody = chain.request().body();
+        Buffer buffer = new Buffer();
+        requestBody.writeTo(buffer);
+
+        Charset charset = UTF8;
+        MediaType contentType = requestBody.contentType();
+        if (contentType != null) {
+            charset = contentType.charset(UTF8);
+        }
+
+        if (isPlaintext(buffer)) {
+            Log.d("xxx-body", buffer.readString(charset));
+        }
+    }
+
 }
